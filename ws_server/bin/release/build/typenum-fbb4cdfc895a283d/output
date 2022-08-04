@@ -1,0 +1,2 @@
+cargo:rustc-env=TYPENUM_BUILD_CONSTS=/Users/sfav/Projects/watch_party/server/server/target/x86_64-unknown-linux-gnu/release/build/typenum-fbb4cdfc895a283d/out/consts.rs
+cargo:rustc-env=TYPENUM_BUILD_OP=/Users/sfav/Projects/watch_party/server/server/target/x86_64-unknown-linux-gnu/release/build/typenum-fbb4cdfc895a283d/out/op.rs

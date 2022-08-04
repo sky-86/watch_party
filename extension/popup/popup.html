@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="popup.css" />
+</head>
+
+<body>
+  <div id="popup-content">
+    <div id="modes">
+      <div class="button option host">Host</div>
+      <div class="button option connect">Connect</div>
+      <input type="number" id="host_id"></input>
+    </div>
+
+    <div id="host" class="">
+      <div class="hostId">HOST ID</div>
+      <div class="button option pause">Pause</div>
+    </div>
+
+    <div id="guest" class="">
+      <div class="button option disconnect">Disconnect</div>
+    </div>
+
+  </div>
+  <div id="error-content" class="hidden">
+    <p>Error on this web page.</p>
+    <p>Try a different page.</p>
+  </div>
+  <script src="popup.js"></script>
+</body>
+
+</html>
