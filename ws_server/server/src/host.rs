@@ -63,3 +63,31 @@ pub fn pause(sessions: SessionMap, hosts: HostMap, curr_addr: &SocketAddr) -> Re
 
     Ok(())
 }
+
+pub fn play(sessions: SessionMap, hosts: HostMap, curr_addr: &SocketAddr) -> Result<()> {
+    // find the party id of the host
+    let id: u8 = hosts
+        .lock()
+        .unwrap()
+        .iter()
+        .filter(|(addr, _id)| addr == &curr_addr)
+        .map(|(_addr, id)| *id)
+        .next()
+        .unwrap();
+
+    println!("{}", id);
+
+        
+    // find the associated session
+    for (t_id, party) in sessions.lock().unwrap().iter() {
+        if t_id == &id {
+            party.iter().for_each(|(addr, sender)| {
+                println!("sending play request to {}", addr);
+                let msg = Message::Text("play".to_string());
+                sender.unbounded_send(msg).unwrap();
+            })
+        }
+    }
+
+    Ok(())
+}

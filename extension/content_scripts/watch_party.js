@@ -4,11 +4,15 @@
   }
   window.hasRun = true
 
-  const socket = new WebSocket('ws://localhost:8000')
+  const socket = new WebSocket('ws://44.204.233.239:42069')
 
   socket.onmessage = function (event) {
     if (event.data === 'pause') {
       pause()
+    } else if (!isNaN(event.data)) {
+      alert(event.data)
+    } else if (event.data === 'play') {
+      play()
     }
   }
 
@@ -37,12 +41,20 @@
     } else if (keyword === 'pause') {
       socket.send('pause')
       pause()
+    } else if (keyword === 'play') {
+      socket.send('play')
+      play()
     }
   }
 
   function pause () {
     const videos = document.getElementsByTagName('video')
     videos[0].pause()
+  }
+
+  function play () {
+    const videos = document.getElementsByTagName('video')
+    videos[0].play()
   }
 
   browser.runtime.onMessage.addListener((message) => {

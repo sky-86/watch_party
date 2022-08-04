@@ -18,6 +18,7 @@ use client::connect_to_host;
 use host::new_host;
 
 use crate::host::pause;
+use crate::host::play;
 
 //pub type PeerMap = Arc<Mutex<HashMap<SocketAddr, Tx>>>;
 pub type Tx = UnboundedSender<Message>;
@@ -58,6 +59,10 @@ async fn handle_client(
                     "pause" => {
                         println!("host want to pause");
                         pause(sessions.clone(), hosts.clone(), &addr).unwrap();
+                    }
+                    "play" => {
+                        println!("host want to play");
+                        play(sessions.clone(), hosts.clone(), &addr).unwrap();
                     }
                     _ => {
                         println!("skipped host ");

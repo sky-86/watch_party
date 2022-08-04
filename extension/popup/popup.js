@@ -8,6 +8,12 @@ function listenForClicks () {
       })
     }
 
+    function play (tabs) {
+      browser.tabs.sendMessage(tabs[0].id, {
+        command: 'play'
+      })
+    }
+
     function host (tabs) {
       // becomeHost()
       browser.tabs.sendMessage(tabs[0].id, {
@@ -36,6 +42,10 @@ function listenForClicks () {
     } else if (e.target.classList.contains('connect')) {
       browser.tabs.query({ active: true, currentWindow: true })
         .then(connect)
+        .catch(reportError)
+    } else if (e.target.classList.contains('play')) {
+      browser.tabs.query({ active: true, currentWindow: true })
+        .then(play)
         .catch(reportError)
     }
   })
