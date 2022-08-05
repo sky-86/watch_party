@@ -32,6 +32,7 @@ function reset () {
 function handleMessage (request, sender, sendResponse) {
   if (request.hostId) {
     hostId = request.hostId
+    browser.runtime.sendMessage({ reload: hostId })
   } else if (request.socket === 'close') {
     browser.runtime.reload()
   }

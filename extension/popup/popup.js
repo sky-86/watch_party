@@ -15,21 +15,23 @@ function listenForClicks () {
     }
 
     function host (tabs) {
-      const id = bg.setHost()
-      becomeHost(id)
       browser.tabs.sendMessage(tabs[0].id, {
         command: 'host'
       })
+      const id = bg.setHost()
+      becomeHost(id)
     }
 
     function connect (tabs) {
-      bg.setGuest()
-      becomeGuest()
       const hostId = document.getElementById('host_id_input').value
-      if (hostId.trim().length !== 0) {
-        browser.tabs.sendMessage(tabs[0].id, {
-          command: hostId
-        })
+      if (hostId !== null) {
+        bg.setGuest()
+        becomeGuest()
+        if (hostId.trim().length !== 0) {
+          browser.tabs.sendMessage(tabs[0].id, {
+            command: hostId
+          })
+        }
       }
     }
 
@@ -40,27 +42,31 @@ function listenForClicks () {
       })
     }
 
-    if (e.target.classList.contains('pause')) {
-      browser.tabs.query({ active: true, currentWindow: true })
-        .then(pause)
-        .catch(reportError)
-    } else if (e.target.classList.contains('host')) {
-      browser.tabs.query({ active: true, currentWindow: true })
-        .then(host)
-        .catch(reportError)
-    } else if (e.target.classList.contains('connect')) {
-      browser.tabs.query({ active: true, currentWindow: true })
-        .then(connect)
-        .catch(reportError)
-    } else if (e.target.classList.contains('play')) {
-      browser.tabs.query({ active: true, currentWindow: true })
-        .then(play)
-        .catch(reportError)
-    } else if (e.target.classList.contains('dc')) {
-      browser.tabs.query({ active: true, currentWindow: true })
-        .then(disconnect)
-        .catch(reportError)
+    function attach () {
+      if (e.target.classList.contains('host')) {
+        browser.tabs.query({ active: true, currentWindow: true })
+          .then(host)
+          .catch(reportError)
+      } else if (e.target.classList.contains('connect')) {
+        browser.tabs.query({ active: true, currentWindow: true })
+          .then(connect)
+          .catch(reportError)
+      } else if (e.target.classList.contains('play')) {
+        browser.tabs.query({ active: true, currentWindow: true })
+          .then(play)
+          .catch(reportError)
+      } else if (e.target.classList.contains('pause')) {
+        browser.tabs.query({ active: true, currentWindow: true })
+          .then(pause)
+          .catch(reportError)
+      } else if (e.target.classList.contains('dc')) {
+        browser.tabs.query({ active: true, currentWindow: true })
+          .then(disconnect)
+          .catch(reportError)
+      }
     }
+
+    attach()
   })
 }
 
@@ -108,3 +114,11 @@ if (bg.getHost() === true) {
 browser.tabs.executeScript({ file: '/content_scripts/watch_party.js' })
   .then(listenForClicks)
   .catch(reportExecuteScriptError)
+
+function handleMessage (request, sender, sendResponse) {
+  if (request.reload) {
+    document.getElementById('host_id').innerHTML = request.reload
+  }
+}
+
+browser.runtime.onMessage.addListener(handleMessage)

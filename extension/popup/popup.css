@@ -10,8 +10,12 @@ html, body {
   margin: 3% auto;
   padding: 4px;
   text-align: center;
-  font-size: 1.5em;
+  font-size: 1.2em;
   cursor: pointer;
+}
+
+.id_input {
+  width: 95px;
 }
 
 .option:hover {
