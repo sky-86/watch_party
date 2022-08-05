@@ -4,31 +4,32 @@
   }
   window.hasRun = true
 
-  const socket = new WebSocket('ws://44.204.233.239:42069')
+  function openSocket () {
+    return new WebSocket('ws://44.204.233.239:42069')
+  }
+
+  const socket = openSocket()
 
   socket.onmessage = function (event) {
     if (event.data === 'pause') {
       pause()
     } else if (!isNaN(event.data)) {
-      alert(event.data)
+      browser.runtime.sendMessage({ hostId: event.data })
     } else if (event.data === 'play') {
       play()
     }
   }
 
   socket.onclose = function (event) {
+    browser.runtime.sendMessage({ socket: 'close' })
     if (event.wasClean) {
-      // alert(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`)
     } else {
-      // e.g. server process killed or network down
-      // event.code is usually 1006 in this case
-      // alert('[close] Connection died')
     }
   }
 
-  socket.onerror = function (error) {
-    alert(`[error] ${error.message}`)
-  }
+  // socket.onerror = function (error) {
+  //   // alert(`[error] ${error.message}`)
+  // }
 
   // let id = 0
   function handleConnection (keyword) {
@@ -44,6 +45,8 @@
     } else if (keyword === 'play') {
       socket.send('play')
       play()
+    } else if (keyword === 'dc') {
+      socket.close()
     }
   }
 

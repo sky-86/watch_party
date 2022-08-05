@@ -4,7 +4,8 @@
   "name": "Watch Party",
 
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "storage"
   ],
 
   "icons": {
@@ -15,5 +16,10 @@
     "default_icon": "icons/watch_party_32.png",
     "default_title": "Watch Party",
     "default_popup": "popup/popup.html"
+  },
+
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
   }
 }

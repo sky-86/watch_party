@@ -15,20 +15,29 @@ function listenForClicks () {
     }
 
     function host (tabs) {
-      // becomeHost()
+      const id = bg.setHost()
+      becomeHost(id)
       browser.tabs.sendMessage(tabs[0].id, {
         command: 'host'
       })
     }
 
     function connect (tabs) {
-      // becomeClient()
-      const hostId = document.getElementById('host_id').value
+      bg.setGuest()
+      becomeGuest()
+      const hostId = document.getElementById('host_id_input').value
       if (hostId.trim().length !== 0) {
         browser.tabs.sendMessage(tabs[0].id, {
           command: hostId
         })
       }
+    }
+
+    function disconnect (tabs) {
+      reset()
+      browser.tabs.sendMessage(tabs[0].id, {
+        command: 'dc'
+      })
     }
 
     if (e.target.classList.contains('pause')) {
@@ -47,6 +56,10 @@ function listenForClicks () {
       browser.tabs.query({ active: true, currentWindow: true })
         .then(play)
         .catch(reportError)
+    } else if (e.target.classList.contains('dc')) {
+      browser.tabs.query({ active: true, currentWindow: true })
+        .then(disconnect)
+        .catch(reportError)
     }
   })
 }
@@ -57,16 +70,34 @@ function reportExecuteScriptError (error) {
   console.error(`Failed to execute watch_party content script: ${error.message}`)
 }
 
-function becomeHost () {
+function becomeHost (id) {
+  document.getElementById('host_id').innerHTML = id
   document.getElementById('modes').classList.add('hidden')
   document.getElementById('guest').classList.add('hidden')
   document.getElementById('host').classList.remove('hidden')
+  document.getElementById('disconnect').classList.remove('hidden')
 }
 
-function becomeClient () {
+function becomeGuest () {
   document.getElementById('modes').classList.add('hidden')
   document.getElementById('host').classList.add('hidden')
   document.getElementById('guest').classList.remove('hidden')
+  document.getElementById('disconnect').classList.remove('hidden')
+}
+
+function reset () {
+  document.getElementById('modes').classList.remove('hidden')
+  document.getElementById('host').classList.add('hidden')
+  document.getElementById('guest').classList.add('hidden')
+  document.getElementById('disconnect').classList.add('hidden')
+}
+
+const bg = browser.extension.getBackgroundPage()
+if (bg.getHost() === true) {
+  const id = bg.getHostId()
+  becomeHost(id)
+} else if (bg.getHost() === false) {
+  becomeGuest()
 }
 
 /**

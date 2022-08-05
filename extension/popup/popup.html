@@ -11,19 +11,21 @@
   <div id="popup-content">
     <div id="modes">
       <div class="button option host">Host</div>
+      <input type="number" id="host_id_input"></input>
       <div class="button option connect">Connect</div>
-      <input type="number" id="host_id"></input>
     </div>
 
-    <div id="host" class="">
-      <div class="hostId">HOST ID</div>
+    <div id="host" class="hidden">
+      <div id="host_id">HOST ID</div>
       <div class="button option pause">Pause</div>
       <div class="button option play">Play</div>
     </div>
 
-    <div id="guest" class="">
-      <div class="button option disconnect">Disconnect</div>
+    <div id="guest" class="hidden">
+        <div>Your a guest.</div>
     </div>
+
+  <div id="disconnect" class="button option dc hidden">Disconnect</div>
 
   </div>
   <div id="error-content" class="hidden">
