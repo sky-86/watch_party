@@ -1,14 +1,9 @@
 use color_eyre::Result;
-use futures_channel::mpsc::{unbounded, UnboundedSender};
-use futures_util::{future, pin_mut, stream::TryStreamExt, StreamExt};
+use futures_channel::mpsc::UnboundedSender;
 use rand::prelude::*;
 use std::collections::HashMap;
 use std::net::SocketAddr;
-use std::sync::{Arc, Mutex, MutexGuard};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::tungstenite::Message;
-use tokio_tungstenite::WebSocketStream;
 
 use crate::{HostMap, SessionMap};
 
@@ -36,54 +31,27 @@ pub fn new_host(
     Ok(())
 }
 
-pub fn pause(sessions: SessionMap, hosts: HostMap, curr_addr: &SocketAddr) -> Result<()> {
+fn find_host(hosts: HostMap, curr_addr: &SocketAddr) -> u8 {
     // find the party id of the host
-    let id: u8 = hosts
+    hosts
         .lock()
         .unwrap()
         .iter()
         .filter(|(addr, _id)| addr == &curr_addr)
         .map(|(_addr, id)| *id)
         .next()
-        .unwrap();
-
-    println!("{}", id);
-
-        
-    // find the associated session
-    for (t_id, party) in sessions.lock().unwrap().iter() {
-        if t_id == &id {
-            party.iter().for_each(|(addr, sender)| {
-                println!("sending pause request to {}", addr);
-                let msg = Message::Text("pause".to_string());
-                sender.unbounded_send(msg).unwrap();
-            })
-        }
-    }
-
-    Ok(())
+        .unwrap()
 }
 
-pub fn play(sessions: SessionMap, hosts: HostMap, curr_addr: &SocketAddr) -> Result<()> {
-    // find the party id of the host
-    let id: u8 = hosts
-        .lock()
-        .unwrap()
-        .iter()
-        .filter(|(addr, _id)| addr == &curr_addr)
-        .map(|(_addr, id)| *id)
-        .next()
-        .unwrap();
-
+pub fn send_request(request: String, sessions: SessionMap, hosts: HostMap, curr_addr: &SocketAddr) -> Result<()> {
+    let id = find_host(hosts, curr_addr);
     println!("{}", id);
-
-        
     // find the associated session
     for (t_id, party) in sessions.lock().unwrap().iter() {
         if t_id == &id {
             party.iter().for_each(|(addr, sender)| {
-                println!("sending play request to {}", addr);
-                let msg = Message::Text("play".to_string());
+                println!("sending request: {} to {}", &request, addr);
+                let msg = Message::Text(request.clone());
                 sender.unbounded_send(msg).unwrap();
             })
         }

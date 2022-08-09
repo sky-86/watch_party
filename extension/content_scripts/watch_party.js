@@ -4,8 +4,10 @@
   }
   window.hasRun = true
 
+  // add function that waits to open socket until the user presses host or connect
   function openSocket () {
-    return new WebSocket('ws://44.204.233.239:42069')
+    // return new WebSocket('ws://44.204.233.239:42069')
+    return new WebSocket('ws://localhost:42069')
   }
 
   const socket = openSocket()
@@ -20,18 +22,6 @@
     }
   }
 
-  socket.onclose = function (event) {
-    browser.runtime.sendMessage({ socket: 'close' })
-    if (event.wasClean) {
-    } else {
-    }
-  }
-
-  // socket.onerror = function (error) {
-  //   // alert(`[error] ${error.message}`)
-  // }
-
-  // let id = 0
   function handleConnection (keyword) {
     if (!isNaN(keyword)) {
       // connect
@@ -48,6 +38,10 @@
     } else if (keyword === 'dc') {
       socket.close()
     }
+  }
+
+  socket.onerror = function (error) {
+    alert(`[error] ${error.message}`)
   }
 
   function pause () {

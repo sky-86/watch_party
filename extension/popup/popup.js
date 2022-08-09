@@ -1,5 +1,6 @@
-// need to store state using storage api
+import { becomeHost, becomeGuest, reset, reportExecuteScriptError, toggleConnect } from './popup_helper.js'
 
+// button events
 function listenForClicks () {
   document.addEventListener('click', (e) => {
     function pause (tabs) {
@@ -22,6 +23,10 @@ function listenForClicks () {
       becomeHost(id)
     }
 
+    function showConnect (tabs) {
+      toggleConnect()
+    }
+
     function connect (tabs) {
       const hostId = document.getElementById('host_id_input').value
       if (hostId !== null) {
@@ -42,60 +47,32 @@ function listenForClicks () {
       })
     }
 
-    function attach () {
-      if (e.target.classList.contains('host')) {
-        browser.tabs.query({ active: true, currentWindow: true })
-          .then(host)
-          .catch(reportError)
-      } else if (e.target.classList.contains('connect')) {
-        browser.tabs.query({ active: true, currentWindow: true })
-          .then(connect)
-          .catch(reportError)
-      } else if (e.target.classList.contains('play')) {
-        browser.tabs.query({ active: true, currentWindow: true })
-          .then(play)
-          .catch(reportError)
-      } else if (e.target.classList.contains('pause')) {
-        browser.tabs.query({ active: true, currentWindow: true })
-          .then(pause)
-          .catch(reportError)
-      } else if (e.target.classList.contains('dc')) {
-        browser.tabs.query({ active: true, currentWindow: true })
-          .then(disconnect)
-          .catch(reportError)
-      }
+    if (e.target.classList.contains('host')) {
+      browser.tabs.query({ active: true, currentWindow: true })
+        .then(host)
+        .catch(reportError)
+    } else if (e.target.classList.contains('show_connect')) {
+      browser.tabs.query({ active: true, currentWindow: true })
+        .then(showConnect)
+        .catch(reportError)
+    } else if (e.target.classList.contains('connect')) {
+      browser.tabs.query({ active: true, currentWindow: true })
+        .then(connect)
+        .catch(reportError)
+    } else if (e.target.classList.contains('play')) {
+      browser.tabs.query({ active: true, currentWindow: true })
+        .then(play)
+        .catch(reportError)
+    } else if (e.target.classList.contains('pause')) {
+      browser.tabs.query({ active: true, currentWindow: true })
+        .then(pause)
+        .catch(reportError)
+    } else if (e.target.classList.contains('dc')) {
+      browser.tabs.query({ active: true, currentWindow: true })
+        .then(disconnect)
+        .catch(reportError)
     }
-
-    attach()
   })
-}
-
-function reportExecuteScriptError (error) {
-  document.querySelector('#popup-content').classList.add('hidden')
-  document.querySelector('#error-content').classList.remove('hidden')
-  console.error(`Failed to execute watch_party content script: ${error.message}`)
-}
-
-function becomeHost (id) {
-  document.getElementById('host_id').innerHTML = id
-  document.getElementById('modes').classList.add('hidden')
-  document.getElementById('guest').classList.add('hidden')
-  document.getElementById('host').classList.remove('hidden')
-  document.getElementById('disconnect').classList.remove('hidden')
-}
-
-function becomeGuest () {
-  document.getElementById('modes').classList.add('hidden')
-  document.getElementById('host').classList.add('hidden')
-  document.getElementById('guest').classList.remove('hidden')
-  document.getElementById('disconnect').classList.remove('hidden')
-}
-
-function reset () {
-  document.getElementById('modes').classList.remove('hidden')
-  document.getElementById('host').classList.add('hidden')
-  document.getElementById('guest').classList.add('hidden')
-  document.getElementById('disconnect').classList.add('hidden')
 }
 
 const bg = browser.extension.getBackgroundPage()

@@ -11,9 +11,7 @@
   <div id="popup-content">
     <div id="modes">
       <div class="button option host">Host</div>
-      <label for="id_input">Host ID Input:</label>
-      <input name="id_input" type="number" id="host_id_input" class="id_input"></input>
-      <div class="button option connect">Connect</div>
+      <div class="button option show_connect">Connect</div>
     </div>
 
     <div id="host" class="hidden">
@@ -22,18 +20,24 @@
       <div class="button option play">Play</div>
     </div>
 
-    <div id="guest" class="hidden">
-        <div>Your a guest.</div>
+    <div id="guest_input" class="hidden">
+      <label for="id_input">Host ID Input:</label>
+      <input name="id_input" type="number" id="host_id_input" class="id_input"></input>
+      <div class="button option connect">Connect</div>
     </div>
 
-  <div id="disconnect" class="button option dc hidden">Disconnect</div>
+    <div id="guest" class="hidden">
+      <div>Your a guest.</div>
+    </div>
+
+    <div id="disconnect" class="button option dc hidden">Disconnect</div>
 
   </div>
   <div id="error-content" class="hidden">
     <p>Error on this web page.</p>
     <p>Try a different page.</p>
   </div>
-  <script src="popup.js"></script>
+  <script type="module" src="popup.js"></script>
 </body>
 
 </html>
