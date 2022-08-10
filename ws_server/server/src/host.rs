@@ -5,7 +5,8 @@ use std::collections::HashMap;
 use std::net::SocketAddr;
 use tokio_tungstenite::tungstenite::Message;
 
-use crate::{HostMap, SessionMap};
+use crate::handle_client::VideoState;
+use crate::{HostMap, SessionMap, StateMap};
 
 pub fn new_host(
     sessions: SessionMap,
@@ -43,7 +44,12 @@ fn find_host(hosts: HostMap, curr_addr: &SocketAddr) -> u8 {
         .unwrap()
 }
 
-pub fn send_request(request: String, sessions: SessionMap, hosts: HostMap, curr_addr: &SocketAddr) -> Result<()> {
+pub fn send_request(
+    request: String,
+    sessions: SessionMap,
+    hosts: HostMap,
+    curr_addr: &SocketAddr,
+) -> Result<()> {
     let id = find_host(hosts, curr_addr);
     println!("{}", id);
     // find the associated session
@@ -56,6 +62,51 @@ pub fn send_request(request: String, sessions: SessionMap, hosts: HostMap, curr_
             })
         }
     }
+
+    Ok(())
+}
+
+pub fn update_guest_state(
+    id: u8,
+    state_map: StateMap,
+    sessions: SessionMap,
+    curr_addr: &SocketAddr,
+) -> Result<()> {
+    let state = state_map
+        .lock()
+        .unwrap()
+        .iter()
+        .filter(|(t_id, _curr_state)| t_id == &&id)
+        .map(|(_t_id, curr_state)| curr_state.clone())
+        .next()
+        .unwrap();
+
+    // find the associated session
+    for (t_id, party) in sessions.lock().unwrap().iter() {
+        if t_id == &id {
+            party.iter().for_each(|(addr, sender)| {
+                let msg = Message::Text(serde_json::to_string(&state).unwrap());
+                sender.unbounded_send(msg).unwrap();
+            })
+        }
+    }
+
+    Ok(())
+}
+
+pub fn save_state(
+    state_map: StateMap,
+    new_state: VideoState,
+    hosts: HostMap,
+    curr_addr: &SocketAddr,
+) -> Result<()> {
+    let id = find_host(hosts, curr_addr);
+    println!("{}", id);
+
+    state_map
+        .lock()
+        .unwrap()
+        .insert(id, new_state);
 
     Ok(())
 }

@@ -1,5 +1,6 @@
 import { becomeHost, becomeGuest, reset, reportExecuteScriptError, toggleConnect } from './popup_helper.js'
 
+const bg = browser.extension.getBackgroundPage()
 // button events
 function listenForClicks () {
   document.addEventListener('click', (e) => {
@@ -41,6 +42,7 @@ function listenForClicks () {
     }
 
     function disconnect (tabs) {
+      bg.reset()
       reset()
       browser.tabs.sendMessage(tabs[0].id, {
         command: 'dc'
@@ -75,7 +77,6 @@ function listenForClicks () {
   })
 }
 
-const bg = browser.extension.getBackgroundPage()
 if (bg.getHost() === true) {
   const id = bg.getHostId()
   becomeHost(id)

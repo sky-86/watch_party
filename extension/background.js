@@ -1,3 +1,13 @@
+/*
+Background Scripts are used for responding to browser events independently
+of the lifetime of the web page.
+
+Persistent bg scripts load when the extensions loads and stay loaded
+Non-persistent(Event pages) load when needed to and unload when idle.
+
+BG scripts run in the context of a special page called a background page
+*/
+
 
 let host = null
 let hostId = -1
