@@ -9,27 +9,25 @@ use tokio_tungstenite::tungstenite::Message;
 
 use futures_channel::mpsc::UnboundedSender;
 
+mod handle_client;
+mod requests;
 mod client;
 mod host;
-mod handle_client;
 
-use crate::handle_client::{handle_client, VideoState};
+use crate::handle_client::handle_client;
 
-//pub type PeerMap = Arc<Mutex<HashMap<SocketAddr, Tx>>>;
 pub type Tx = UnboundedSender<Message>;
+// bind the host id to a group of guests
 pub type SessionMap = Arc<Mutex<HashMap<u8, HashMap<SocketAddr, Tx>>>>;
-pub type HostMap = Arc<Mutex<HashMap<SocketAddr, u8>>>;
-pub type StateMap = Arc<Mutex<HashMap<u8, VideoState>>>;
+pub type UrlMap = Arc<Mutex<HashMap<u8, String>>>;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     color_eyre::install()?;
     dotenv().ok();
 
-    // holds the number of current hosts
     let session_map = SessionMap::new(Mutex::new(HashMap::new()));
-    let host_map = HostMap::new(Mutex::new(HashMap::new()));
-    let state_map = StateMap::new(Mutex::new(HashMap::new()));
+    let url_map = UrlMap::new(Mutex::new(HashMap::new()));
 
     let address = env::var("ADDRESS").unwrap();
     let port = env::var("PORT").unwrap();
@@ -39,7 +37,12 @@ async fn main() -> Result<()> {
     println!("Listening on {}", &curr_addr);
 
     while let Ok((stream, addr)) = listener.accept().await {
-        tokio::spawn(handle_client(session_map.clone(), host_map.clone(), state_map.clone(), stream, addr));
+        tokio::spawn(handle_client(
+            session_map.clone(),
+            url_map.clone(),
+            stream,
+            addr,
+        ));
     }
 
     Ok(())

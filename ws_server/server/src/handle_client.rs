@@ -4,20 +4,16 @@ use futures_util::{future, pin_mut, stream::TryStreamExt, StreamExt};
 use tokio_tungstenite::tungstenite::connect;
 use std::net::SocketAddr;
 use tokio::net::TcpStream;
-use serde::{Serialize, Deserialize};
 
-use crate::{HostMap, SessionMap, StateMap};
-
+use crate::{SessionMap, UrlMap};
 use crate::client::connect_to_host;
-use crate::host::{new_host, send_request, update_guest_state, save_state};
+use crate::host::{new_host, send_request};
+use crate::requests::{HostRequest, EstablishClient};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct VideoState {
-    pub url: String,
-    pub time: f32,
-    pub paused: bool,
-    pub buffering: bool, 
-}
+
+// TODO
+// handle dc's correclty; clear session map
+// if host dc's; dc guests aswell
 
 enum ClientType {
     Host,
@@ -26,8 +22,7 @@ enum ClientType {
 
 pub async fn handle_client(
     sessions: SessionMap,
-    hosts: HostMap,
-    state_map: StateMap,
+    urls: UrlMap,
     raw_stream: TcpStream,
     addr: SocketAddr,
 ) -> Result<()> {
@@ -45,47 +40,44 @@ pub async fn handle_client(
     // for each msg in sink
     let broadcast_incoming = read.try_for_each(|msg| {
         let msg = msg.to_text().unwrap();
+        // if msg is empty drop em
+        if msg.is_empty() {
+            println!("{} dc", &addr);
+            return future::ok(());
+        }
+
         println!("Recieved msg from {}: {}", &addr, &msg);
 
-        match &client_type {
-            Some(client) => {
-                match client {
-                    ClientType::Host => {
-                        if msg.is_empty() {
-                        } else {
-                            match msg {
-                                "play" => {}
-                                "pause" => {}
-                                _ => {
-                                    let state: VideoState = serde_json::from_str(msg).unwrap();
-                                    save_state(state_map.clone(), state, hosts.clone(), &addr).unwrap();
-                                }
-                            }
-                        }
-                    },
-                    ClientType::Guest => {
-                        match msg.parse::<u8>() {
-                            Ok(id) => {
-                                connect_to_host(id, sessions.clone(), addr, sender.clone()).unwrap();
-                                update_guest_state(id, state_map.clone(), sessions.clone(), &addr).unwrap();
-                            },
-                            Err(_e) => {},
-                        }
-                    },
+        // if client is already established
+        if let Some(client) = &client_type {
+            match client {
+                ClientType::Host => {
+                    // forward the request to all guests in session
+                    let msg: HostRequest = serde_json::from_str(msg).unwrap();
+                    send_request(msg, sessions.clone(), urls.clone()).unwrap();
+                },
+                ClientType::Guest => {
+                    println!("Error: guest should not be sending data");
+                },
+            }
+        } else {
+            // client isnt established yet
+            let msg: EstablishClient = serde_json::from_str(msg).unwrap();
+            if msg.client == *"host" {
+                client_type = Some(ClientType::Host);
+                let url = msg.url.unwrap();
+                new_host(url, sessions.clone(), urls.clone(), addr, sender.clone()).unwrap();
+            } else if msg.client == *"guest" {
+                client_type = Some(ClientType::Guest);
+                if let Some(id) = msg.id {
+                    let id = id.parse::<u8>().unwrap();
+                    connect_to_host(id, sessions.clone(), urls.clone(), addr, sender.clone()).unwrap();
+                    println!("guest connected to: {}", id);
                 }
-            },
-            None => {
-                match msg {
-                    "host" => {
-                        client_type = Some(ClientType::Host);
-                        new_host(sessions.clone(), hosts.clone(), addr, sender.clone()).unwrap();
-                    },
-                    "guest" => {
-                        client_type = Some(ClientType::Guest);
-                    },
-                    _ => client_type = None,
-                }
-            },
+            } else {
+                println!("Error: dropping {}", &addr);
+                return future::ok(())
+            }
         }
 
         future::ok(())
@@ -97,6 +89,6 @@ pub async fn handle_client(
     pin_mut!(broadcast_incoming, recieve_from_others);
     future::select(broadcast_incoming, recieve_from_others).await;
 
-    println!("{} dc", &addr);
+    println!("{} end func", &addr);
     Ok(())
 }

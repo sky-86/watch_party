@@ -7,7 +7,7 @@
   },
   "permissions": [
     "activeTab",
-    "notifications"
+    "tabs"
   ],
   "browser_action": {
     "default_title": "Watch Party",

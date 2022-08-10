@@ -9,20 +9,20 @@
 
 <body>
   <div id="popup">
+
     <div id="modes">
       <div id="hostBtn" class="button">Host</div>
       <div id="connectBtn" class="button">Connect</div>
     </div>
 
     <div id="hostControls" class="hidden">
-      <div id="hostId">HOST ID</div>
-      <div class="button">Pause</div>
-      <div class="button">Play</div>
+      <div id="hostId">HOST ID:</div>
     </div>
 
     <div id="connectForm" class="hidden">
+      <div id="back" class="button">Back</div>
       <label for="idInput">Host ID Input:</label>
-      <input id="idInput" name="idInput" type="number"></input>
+      <input id="idInput" name="idInput" class="input" type="number"></input>
       <div id="connectSubmitBtn" class="button">Connect</div>
     </div>
 
@@ -31,6 +31,13 @@
     </div>
 
     <div id="dc" class="button hidden">Disconnect</div>
+
+    <div id="debug" class="">
+      <div>DEBUG MENU:</div>
+      <div id="debug1"></div>
+      <div id="debug2"></div>
+    </div>
+
   </div>
   <script type="module" src="popup.js"></script>
 </body>
