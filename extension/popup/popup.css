@@ -12,24 +12,13 @@ html, body {
   text-align: center;
   font-size: 1.2em;
   cursor: pointer;
-}
-
-.id_input {
-  width: 95px;
-}
-
-.option:hover {
-  background-color: #CFF2F2;
-}
-
-.option {
   background-color: #E5F2F2;
 }
 
-.option2 {
-  background-color: #FBFBC9;
+.button:hover {
+  background-color: #CFF2F2;
 }
 
-.option2:hover {
-  background-color: #EAEA9D;
+.input {
+  width: 95px;
 }

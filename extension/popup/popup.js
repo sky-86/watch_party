@@ -1,102 +1,104 @@
-import { becomeHost, becomeGuest, reset, reportExecuteScriptError, toggleConnect } from './popup_helper.js'
+// called when popup page is loaded; use to update element states
+function onLoad() {
+  // connects to ws
+  browser.runtime.sendMessage({ "popup": "onload" })
 
-const bg = browser.extension.getBackgroundPage()
-// button events
-function listenForClicks () {
+  // used to keep state
+  const bg = browser.extension.getBackgroundPage()
+  let id = bg.getHostId()
+  document.getElementById("hostId").innerHTML = "HOST ID: " + id
+
+  let debug = bg.getDebug()
+  document.getElementById("debug1").innerHTML = debug
+
+  let state = bg.getMenuState();
+  showMenu(state);
+}
+
+// ----------------------- CLICK EVENTS
+function hostClick() {
+  showMenu("hostControls")
+  browser.runtime.sendMessage({ "popup": "host" })
+}
+
+function connectClick() {
+  showMenu("connectForm")
+  browser.runtime.sendMessage({ "popup": "connectForm" })
+}
+
+function connectFormSubmit() {
+  showMenu("guestControls")
+  let id = document.getElementById('idInput').value
+  browser.runtime.sendMessage({ "popup": "guestControls", "id": id })
+}
+
+function backClick() {
+  showMenu("modes")
+  browser.runtime.sendMessage({ "popup": "modes" })
+}
+
+function dcClick() {
+  showMenu("modes")
+  browser.runtime.sendMessage({ "popup": "dc" })
+}
+// ----------------------- END CLICK EVENTS
+
+// detects button clicks and calls associated function
+function listenForClicks() {
+  onLoad()
   document.addEventListener('click', (e) => {
-    function pause (tabs) {
-      browser.tabs.sendMessage(tabs[0].id, {
-        command: 'pause'
-      })
-    }
+    const activeTab = browser.tabs.query({ active: true, currentWindow: true })
 
-    function play (tabs) {
-      browser.tabs.sendMessage(tabs[0].id, {
-        command: 'play'
-      })
-    }
-
-    function host (tabs) {
-      browser.tabs.sendMessage(tabs[0].id, {
-        command: 'host'
-      })
-      const id = bg.setHost()
-      becomeHost(id)
-    }
-
-    function showConnect (tabs) {
-      toggleConnect()
-    }
-
-    function connect (tabs) {
-      const hostId = document.getElementById('host_id_input').value
-      if (hostId !== null) {
-        bg.setGuest()
-        becomeGuest()
-        if (hostId.trim().length !== 0) {
-          browser.tabs.sendMessage(tabs[0].id, {
-            command: hostId
-          })
-        }
-      }
-    }
-
-    function disconnect (tabs) {
-      bg.reset()
-      reset()
-      browser.tabs.sendMessage(tabs[0].id, {
-        command: 'dc'
-      })
-    }
-
-    if (e.target.classList.contains('host')) {
-      browser.tabs.query({ active: true, currentWindow: true })
-        .then(host)
-        .catch(reportError)
-    } else if (e.target.classList.contains('show_connect')) {
-      browser.tabs.query({ active: true, currentWindow: true })
-        .then(showConnect)
-        .catch(reportError)
-    } else if (e.target.classList.contains('connect')) {
-      browser.tabs.query({ active: true, currentWindow: true })
-        .then(connect)
-        .catch(reportError)
-    } else if (e.target.classList.contains('play')) {
-      browser.tabs.query({ active: true, currentWindow: true })
-        .then(play)
-        .catch(reportError)
-    } else if (e.target.classList.contains('pause')) {
-      browser.tabs.query({ active: true, currentWindow: true })
-        .then(pause)
-        .catch(reportError)
-    } else if (e.target.classList.contains('dc')) {
-      browser.tabs.query({ active: true, currentWindow: true })
-        .then(disconnect)
-        .catch(reportError)
+    if (e.target.id === 'hostBtn') {
+        activeTab.then(hostClick)
+    } else if (e.target.id === 'connectBtn') {
+        activeTab.then(connectClick)
+    } else if (e.target.id === 'connectSubmitBtn') {
+        activeTab.then(connectFormSubmit)
+    } else if (e.target.id === 'back') {
+        activeTab.then(backClick)
+    } else if (e.target.id === 'dc') {
+        activeTab.then(dcClick)
     }
   })
 }
 
-if (bg.getHost() === true) {
-  const id = bg.getHostId()
-  becomeHost(id)
-} else if (bg.getHost() === false) {
-  becomeGuest()
-}
-
-/**
- * When the popup loads, inject a content script into the active tab,
- * and add a click handler.
- * If we couldn't inject the script, handle the error.
- */
-browser.tabs.executeScript({ file: '/content_scripts/watch_party.js' })
-  .then(listenForClicks)
-  .catch(reportExecuteScriptError)
-
-function handleMessage (request, sender, sendResponse) {
-  if (request.reload) {
-    document.getElementById('host_id').innerHTML = request.reload
+function handleMessage(msg) {
+  if (msg.debug) {
+    document.getElementById("debug1").innerHTML = msg.debug
+  } else if (msg.hostId) {
+    document.getElementById("hostId").innerHTML = "HOST ID: " + msg.hostId
   }
 }
 
+function showMenu(menu) {
+  document.getElementById("modes").classList.add("hidden")
+  document.getElementById("hostControls").classList.add("hidden")
+  document.getElementById("connectForm").classList.add("hidden")
+  document.getElementById("guestControls").classList.add("hidden")
+  document.getElementById("dc").classList.add("hidden")
+
+  switch (menu) {
+    case "modes":
+      document.getElementById("modes").classList.remove("hidden")
+      break
+    case "hostControls":
+      document.getElementById("hostControls").classList.remove("hidden")
+      document.getElementById("dc").classList.remove("hidden")
+      break
+    case "connectForm":
+      document.getElementById("connectForm").classList.remove("hidden")
+      break
+    case "guestControls":
+      document.getElementById("guestControls").classList.remove("hidden")
+      document.getElementById("dc").classList.remove("hidden")
+      break
+  }
+}
+
+// listen for messages from background script
 browser.runtime.onMessage.addListener(handleMessage)
+
+// load content script whenever user opens popup
+browser.tabs.executeScript({ file: '/content/video.js' })
+  .then(listenForClicks)

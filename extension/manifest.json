@@ -1,25 +1,22 @@
 {
   "manifest_version": 2,
-  "version": "1.0.2",
+  "version": "0.1",
   "name": "Watch Party",
-
-  "permissions": [
-    "activeTab",
-    "storage"
-  ],
-
   "icons": {
     "48": "icons/watch_party_48.png"
   },
-
+  "permissions": [
+    "activeTab",
+    "tabs"
+  ],
   "browser_action": {
-    "default_icon": "icons/watch_party_32.png",
     "default_title": "Watch Party",
-    "default_popup": "popup/popup.html"
+    "default_icon": "icons/watch_party_32.png",
+    "default_popup": "popup/popup.html",
+    "browser_style": true
   },
-
   "background": {
-    "scripts": ["background.js"],
+    "scripts": ["background/background.js"],
     "persistent": false
   }
 }
